@@ -13,17 +13,14 @@ void Effects::update(){
 	struct_Color RGB_Temp;
 	if(VAR.b_New == true){
 		VAR.b_New = false;
-		VAR.i_DeltaHx100 = ((VAR.ColorPrincipal.H - VAR.ColorSecond.H) * 100) / (VAR.ui_Speed /** NB_PERIODE_01S*/);
-		VAR.i_DeltaLx100 = (((VAR.ColorPrincipal.L - VAR.ColorSecond.L)* 100) / ((VAR.ui_Speed /** NB_PERIODE_01S*/))) ;
-		VAR.i_DeltaSx100 = (((VAR.ColorPrincipal.S - VAR.ColorSecond.S)* 100) / ((VAR.ui_Speed /** NB_PERIODE_01S*/))) ;
-		VAR.ColorActual = VAR.ColorSecond;
-		VAR.i_ActualHx100 =	VAR.ColorActual.H;
-		VAR.i_ActualSx100 = VAR.ColorActual.S;
-		VAR.i_ActualLx100 = VAR.ColorActual.L;
-		VAR.State = EffectState_Start;
+
 		switch (VAR.ui_EffectIndex) {
 		case COM_SFX_EFFECT_OFF:
-			LED_Strip->fade_out();
+			//LED_Strip->fade_out();
+			VAR.ColorSecond = VAR.ColorActual;
+			VAR.ColorPrincipal.H = VAR.ColorActual.H;
+			VAR.ColorPrincipal.S = VAR.ColorActual.S;
+			VAR.ColorPrincipal.L = 0;
 			break;
 		case COM_SFX_EFFECT_FIXE:
 			LED_Strip->setMode(ui_IndexOffsetSeg, FX_MODE_STATIC);
@@ -31,6 +28,10 @@ void Effects::update(){
 				VAR.ui_ColorActual[i] = VAR.ui_ColorSecond;
 			}*/
 			break;
+		case COM_SFX_EFFECT_FIXE_ACTUAL:
+					//LED_Strip->fade_out();
+					VAR.ColorSecond = VAR.ColorActual;
+				break;
 		case COM_SFX_EFFECT_BREATH:
 			LED_Strip->setMode(ui_IndexOffsetSeg, FX_MODE_STATIC);
 			break;
@@ -40,6 +41,15 @@ void Effects::update(){
 		default:
 			break;
 		}
+		VAR.i_DeltaHx100 = ((VAR.ColorPrincipal.H - VAR.ColorSecond.H) * 100) / (VAR.ui_Speed /** NB_PERIODE_01S*/);
+		VAR.i_DeltaLx100 = (((VAR.ColorPrincipal.L - VAR.ColorSecond.L)* 100) / ((VAR.ui_Speed /** NB_PERIODE_01S*/))) ;
+		VAR.i_DeltaSx100 = (((VAR.ColorPrincipal.S - VAR.ColorSecond.S)* 100) / ((VAR.ui_Speed /** NB_PERIODE_01S*/))) ;
+
+		VAR.ColorActual = VAR.ColorSecond;
+		VAR.i_ActualHx100 =	VAR.ColorActual.H * 100;
+		VAR.i_ActualSx100 = VAR.ColorActual.S * 100;
+		VAR.i_ActualLx100 = VAR.ColorActual.L * 100;
+		VAR.State = EffectState_Start;
 		VAR.b_InProcess = true;
 	}
 
@@ -48,10 +58,13 @@ void Effects::update(){
 		//Serial.println(VAR.ui_ColorActual);
 		switch (VAR.ui_EffectIndex) {
 		case COM_SFX_EFFECT_OFF:
-
+			Update_Off();
 			break;
 		case COM_SFX_EFFECT_FIXE:
 			Update_Fixe();
+			break;
+		case COM_SFX_EFFECT_FIXE_ACTUAL:
+			Update_FixeActual();
 			break;
 		case COM_SFX_EFFECT_BREATH:
 			Update_Breath();
@@ -73,12 +86,19 @@ void Effects::update(){
 
 }
 
+void Effects::Update_Off(){
+	Update_Fixe();
+}
+
 void Effects::Update_Fixe(){
 //	int16_t L_Tempx100, S_Tempx100;
 //	int32_t H_Tempx100;
 	boolean b_TestH, b_TestS, b_TestL;
 	switch (VAR.State) {
 		case EffectState_Start:
+			if(VAR.ui_Speed == 0){
+				VAR.ColorActual = VAR.ColorPrincipal;
+			}
 			if(VAR.ColorActual.H != VAR.ColorPrincipal.H){
 //				H_Tempx100 = VAR.ColorActual.H * 100;
 				VAR.i_ActualHx100 += VAR.i_DeltaHx100;
@@ -131,7 +151,6 @@ void Effects::Update_Fixe(){
 				}else {
 					b_TestL = false;
 				}
-
 			}
 			else{
 				b_TestL = true;
@@ -149,6 +168,10 @@ void Effects::Update_Fixe(){
 			break;
 	}
 
+}
+
+void Effects::Update_FixeActual(){
+	Update_Fixe();
 }
 
 void Effects::Update_Breath(){

@@ -10,8 +10,9 @@
 
 #define COM_SFX_EFFECT_OFF				0x0
 #define COM_SFX_EFFECT_FIXE				0x1
-#define COM_SFX_EFFECT_BREATH			0x2
-#define COM_SFX_EFFECT_WAVE				0x3
+#define COM_SFX_EFFECT_FIXE_ACTUAL		0x2
+#define COM_SFX_EFFECT_BREATH			0x3
+#define COM_SFX_EFFECT_WAVE				0x4
 
 typedef struct{
 	uint8_t R;
@@ -64,7 +65,9 @@ public:
 	uint8_t ui_IndexOffsetSeg;
 	uint8_t ui_LenghtSegment;
 private:
+	void Update_Off();
 	void Update_Fixe();
+	void Update_FixeActual();
 	void Update_Breath();
 	float HueToRGB(float v1, float v2, float vH);
 	struct_Color HSLToRGB(struct_HSL hsl);
